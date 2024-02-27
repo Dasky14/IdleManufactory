@@ -19,6 +19,7 @@ public class TickManager : MonoBehaviour
     
     public float ticksPerSecond = 1f;
     public bool paused = false;
+    public bool animateItemMovement = true;
 
 
     private float tickTimer = 0f;

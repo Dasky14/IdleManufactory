@@ -55,7 +55,13 @@ public class ConveyorBelt : Building
 
         if (hasItem && canPassItem)
         {
-            items[0].transform.position = nextConveyorBelt.itemLocation.transform.position;
+            TickManager tickManager = TickManager.GetInstance();
+
+            if (tickManager.animateItemMovement)
+                StartCoroutine(MoveItem(items[0], nextConveyorBelt.itemLocation.transform.position, (1f / tickManager.ticksPerSecond) / 2));
+            else
+                items[0].transform.position = nextConveyorBelt.itemLocation.transform.position;
+
             nextConveyorBelt.items.Add(items[0]);
             items.RemoveAt(0);
 
@@ -192,5 +198,18 @@ public class ConveyorBelt : Building
                 count++;
         }
         return count;
+    }
+
+    private IEnumerator MoveItem(GameObject item, Vector3 target, float overTime)
+    {
+        Vector3 source = item.transform.position;
+
+        float startTime = Time.time;
+        while (Time.time < startTime + overTime)
+        {
+            item.transform.position = Vector3.Lerp(source, target, (Time.time - startTime) / overTime);
+            yield return null;
+        }
+        item.transform.position = target;
     }
 }
