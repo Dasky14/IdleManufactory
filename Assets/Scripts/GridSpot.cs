@@ -15,4 +15,15 @@ public class GridSpot : MonoBehaviour
     {
         return buildingContainer.transform.GetChild(0).gameObject;
     }
+
+    public void DemolishBuilding()
+    {
+        if (isOccupied)
+        {
+            Building building = GetBuilding().GetComponent<Building>();
+            building.OnDemolish();
+            Destroy(GetBuilding());
+            isOccupied = false;
+        }
+    }
 }

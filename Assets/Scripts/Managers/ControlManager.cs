@@ -68,7 +68,7 @@ public class ControlManager : MonoBehaviour
                 HandleRotateMode();
                 break;
             case ControlMode.Demolish:
-                //HandleDemolishMode();
+                HandleDemolishMode();
                 break;
         }
     }
@@ -144,6 +144,25 @@ public class ControlManager : MonoBehaviour
                 if (spot != null && spot.isOccupied)
                 {
                     spot.GetBuilding().GetComponent<Building>().Rotate(1);
+                }
+            }
+        }
+    }
+
+    private void HandleDemolishMode()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            LayerMask mask = LayerMask.GetMask("ClickableGround");
+
+            if (Physics.Raycast(ray, out hit, Mathf.Infinity, mask))
+            {
+                GridSpot spot = hit.collider.GetComponentInParent<GridSpot>();
+                if (spot != null && spot.isOccupied)
+                {
+                    spot.DemolishBuilding();
                 }
             }
         }
