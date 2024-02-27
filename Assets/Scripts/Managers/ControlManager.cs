@@ -1,24 +1,34 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class SelectionManager : MonoBehaviour
+public class ControlManager : MonoBehaviour
 {
-    private static SelectionManager instance;
+    private static ControlManager instance;
 
-    public static int hoverX = -1;
-    public static int hoverY = -1;
     public static int selectionX = -1;
     public static int selectionY = -1;
+    private static bool _selectionActive = false;
+    public static bool selectionActive { get { return _selectionActive; } }
 
     private GameObject lastHover;
     private GameObject selection;
 
     [SerializeField]
     private GameObject selectionPrefab;
+    [SerializeField]
     private float selectionObjectHeight = 0.1f;
 
     private GameObject selectionObject;
+
+    private enum ControlMode
+    {
+        Build,
+        Rotate,
+        Demolish
+    }
+    private ControlMode controlMode;
 
     private void Awake()
     {
@@ -32,8 +42,6 @@ public class SelectionManager : MonoBehaviour
             Destroy(this);
         }
 
-        hoverX = -1;
-        hoverY = -1;
         selectionX = -1;
         selectionY = -1;
     }
@@ -41,16 +49,32 @@ public class SelectionManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (EventSystem.current.IsPointerOverGameObject()) return;
+
+        switch (controlMode)
+        {
+            case ControlMode.Build:
+                HandleBuildMode();
+                break;
+            case ControlMode.Rotate:
+                HandleRotateMode();
+                break;
+            case ControlMode.Demolish:
+                //HandleDemolishMode();
+                break;
+        }
+
+        
+    }
+
+    private void HandleBuildMode()
+    {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
         LayerMask mask = LayerMask.GetMask("ClickableGround");
 
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, mask))
         {
-            GameObject hover = hit.collider.transform.parent.gameObject;
-            if (lastHover != hover)
-                lastHover = hover;
-
             if (Input.GetMouseButtonDown(0))
             {
                 GridSpot spot = hit.collider.GetComponentInParent<GridSpot>();
@@ -76,19 +100,32 @@ public class SelectionManager : MonoBehaviour
             if (Input.GetMouseButtonDown(0))
                 Unselect();
         }
+    }
 
-        if (lastHover != null)
+    private void HandleRotateMode()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+        LayerMask mask = LayerMask.GetMask("ClickableGround");
+
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity, mask))
         {
-            GridSpot spot = lastHover.GetComponent<GridSpot>();
-            if (spot != null)
+            GameObject hover = hit.collider.transform.parent.gameObject;
+            if (lastHover != hover)
+                lastHover = hover;
+
+            if (Input.GetMouseButtonDown(0))
             {
-                hoverX = spot.x;
-                hoverY = spot.y;
+                GridSpot spot = hit.collider.GetComponentInParent<GridSpot>();
+                if (spot != null)
+                {
+                    spot.GetBuilding().GetComponent<Building>().Rotate(1);
+                }
             }
         }
     }
 
-    public static SelectionManager GetInstance()
+    public static ControlManager GetInstance()
     {
         return instance;
     }
@@ -103,6 +140,8 @@ public class SelectionManager : MonoBehaviour
             selectionObject = Instantiate(selectionPrefab, pos, Quaternion.identity);
         else
             selectionObject.transform.position = pos;
+
+        _selectionActive = true;
     }
 
     private void Unselect()
@@ -119,6 +158,7 @@ public class SelectionManager : MonoBehaviour
 
             if (selectionObject != null)
                 Destroy(selectionObject);
+            _selectionActive = false;
         }
     }
 }

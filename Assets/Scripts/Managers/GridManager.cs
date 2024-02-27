@@ -55,14 +55,48 @@ public class GridManager : MonoBehaviour
 
     public GameObject GetGridObject(int x, int y)
     {
+        if (x < 0 || x >= xSize || y < 0 || y >= ySize)
+        {
+            return null;
+        }
         return _gridObjects[y * xSize + x];
+    }
+
+    public Building GetGridBuilding(int x, int y)
+    {
+        GameObject go = GetGridObject(x, y);
+        if (go != null)
+        {
+            GridSpot spot = go.GetComponent<GridSpot>();
+            if (spot.isOccupied)
+            {
+                return spot.GetBuilding().GetComponent<Building>();
+            }
+        }
+        return null;
     }
 
     public void CreateBuilding(GameObject building, int x, int y)
     {
         GridSpot spot = GetGridObject(x, y).GetComponent<GridSpot>();
+        if (spot.isOccupied)
+        {
+            Debug.LogWarning("Spot is already occupied!", gameObject);
+            return;
+        }
         GameObject go = Instantiate(building, spot.buildingContainer.transform);
-        go.GetComponent<Building>().SetPosition(x, y);
-        
+        Building buildingComponent = go.GetComponent<Building>();
+        if (buildingComponent != null)
+        {
+            buildingComponent.SetPosition(x, y);
+            spot.isOccupied = true;
+        }
+        else
+        {
+            Debug.LogWarning($"Prefab does not have a Building component! Name: {go.name}");
+            Destroy(go);
+        }
+
+        buildingComponent.OnBuild();
     }
 }

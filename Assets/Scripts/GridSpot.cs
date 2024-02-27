@@ -10,4 +10,9 @@ public class GridSpot : MonoBehaviour
 
     public GameObject buildingContainer;
     public GameObject groundModel;
+
+    public GameObject GetBuilding()
+    {
+        return buildingContainer.transform.GetChild(0).gameObject;
+    }
 }
