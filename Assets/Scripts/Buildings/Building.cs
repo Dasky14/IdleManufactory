@@ -13,12 +13,13 @@ public abstract class Building : MonoBehaviour
         None
     }
 
+    [Header("Coordinates")]
     [HideInInspector]
     public int gridPosX;
     [HideInInspector]
     public int gridPosY;
 
-
+    [Header("Base Building Options")]
     public BuildingDirection direction = BuildingDirection.None;
     public bool hasItemInput = false;
     public bool hasItemOutput = false;
@@ -32,6 +33,7 @@ public abstract class Building : MonoBehaviour
     }
 
     public abstract void OnBuild();
+    public abstract void OnDemolish();
     public abstract void Rotate(int amount);
     public abstract void SetRotation(BuildingDirection direction);
 }

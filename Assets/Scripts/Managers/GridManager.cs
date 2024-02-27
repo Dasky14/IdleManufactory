@@ -5,13 +5,18 @@ using UnityEngine;
 public class GridManager : MonoBehaviour
 {
     private static GridManager instance;
+    public static GridManager GetInstance()
+    {
+        return instance;
+    }
 
     // grid size variables
     public int xSize = 5;
     public int ySize = 5;
 
     public GameObject tilePrefab;
-    private List<GameObject> _gridObjects;   
+    private List<GameObject> _gridObjects;
+
 
 
     private void Awake()
@@ -48,11 +53,6 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    public static GridManager GetInstance()
-    {
-        return instance;
-    }
-
     public GameObject GetGridObject(int x, int y)
     {
         if (x < 0 || x >= xSize || y < 0 || y >= ySize)
@@ -64,6 +64,11 @@ public class GridManager : MonoBehaviour
 
     public Building GetGridBuilding(int x, int y)
     {
+        if (x < 0 || x >= xSize || y < 0 || y >= ySize)
+        {
+            return null;
+        }
+
         GameObject go = GetGridObject(x, y);
         if (go != null)
         {
@@ -78,6 +83,12 @@ public class GridManager : MonoBehaviour
 
     public void CreateBuilding(GameObject building, int x, int y)
     {
+        if (x < 0 || x >= xSize || y < 0 || y >= ySize)
+        {
+            Debug.LogWarning("Spot is out of bounds!", gameObject);
+            return;
+        }
+
         GridSpot spot = GetGridObject(x, y).GetComponent<GridSpot>();
         if (spot.isOccupied)
         {

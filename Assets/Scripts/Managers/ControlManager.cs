@@ -6,14 +6,18 @@ using UnityEngine.EventSystems;
 public class ControlManager : MonoBehaviour
 {
     private static ControlManager instance;
+    public static ControlManager GetInstance()
+    {
+        return instance;
+    }
 
     public static int selectionX = -1;
     public static int selectionY = -1;
     private static bool _selectionActive = false;
     public static bool selectionActive { get { return _selectionActive; } }
 
-    private GameObject lastHover;
     private GameObject selection;
+    private GameObject buildingPrefab;
 
     [SerializeField]
     private GameObject selectionPrefab;
@@ -22,8 +26,9 @@ public class ControlManager : MonoBehaviour
 
     private GameObject selectionObject;
 
-    private enum ControlMode
+    public enum ControlMode
     {
+        Select,
         Build,
         Rotate,
         Demolish
@@ -53,6 +58,9 @@ public class ControlManager : MonoBehaviour
 
         switch (controlMode)
         {
+            case ControlMode.Select:
+                HandleSelectMode();
+                break;
             case ControlMode.Build:
                 HandleBuildMode();
                 break;
@@ -63,61 +71,77 @@ public class ControlManager : MonoBehaviour
                 //HandleDemolishMode();
                 break;
         }
-
-        
     }
 
-    private void HandleBuildMode()
+    private void HandleSelectMode()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-        LayerMask mask = LayerMask.GetMask("ClickableGround");
-
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity, mask))
+        if (Input.GetMouseButtonDown(0))
         {
-            if (Input.GetMouseButtonDown(0))
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            LayerMask mask = LayerMask.GetMask("ClickableGround");
+            if (Physics.Raycast(ray, out hit, Mathf.Infinity, mask))
             {
                 GridSpot spot = hit.collider.GetComponentInParent<GridSpot>();
                 if (spot != null)
                 {
                     if (selectionX == spot.x && selectionY == spot.y)
                     {
-                        Debug.Log($"Unselected spot: {spot.x}, {spot.y}");
                         Unselect();
                     }
                     else
                     {
-                        Debug.Log($"Selected spot: {spot.x}, {spot.y}");
                         selectionX = spot.x;
                         selectionY = spot.y;
                         SetSelection(spot.x, spot.y);
                     }
                 }
             }
-        }
-        else
-        {
-            if (Input.GetMouseButtonDown(0))
+            else
+            {
                 Unselect();
+            }
+        }
+    }
+
+    private void HandleBuildMode()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (buildingPrefab == null)
+            {
+                Debug.LogWarning("No building prefab set!", gameObject);
+                return;
+            }
+
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            LayerMask mask = LayerMask.GetMask("ClickableGround");
+
+            if (Physics.Raycast(ray, out hit, Mathf.Infinity, mask))
+            {
+                GridSpot spot = hit.collider.GetComponentInParent<GridSpot>();
+                if (spot != null && !spot.isOccupied)
+                {
+                    GridManager gridManager = GridManager.GetInstance();
+                    gridManager.CreateBuilding(buildingPrefab, spot.x, spot.y);
+                }
+            }
         }
     }
 
     private void HandleRotateMode()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-        LayerMask mask = LayerMask.GetMask("ClickableGround");
-
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity, mask))
+        if (Input.GetMouseButtonDown(0))
         {
-            GameObject hover = hit.collider.transform.parent.gameObject;
-            if (lastHover != hover)
-                lastHover = hover;
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            LayerMask mask = LayerMask.GetMask("ClickableGround");
 
-            if (Input.GetMouseButtonDown(0))
+            if (Physics.Raycast(ray, out hit, Mathf.Infinity, mask))
             {
                 GridSpot spot = hit.collider.GetComponentInParent<GridSpot>();
-                if (spot != null)
+                if (spot != null && spot.isOccupied)
                 {
                     spot.GetBuilding().GetComponent<Building>().Rotate(1);
                 }
@@ -125,9 +149,16 @@ public class ControlManager : MonoBehaviour
         }
     }
 
-    public static ControlManager GetInstance()
+    public void SetControlMode(ControlMode mode)
     {
-        return instance;
+        controlMode = mode;
+        if (mode != ControlMode.Select)
+            Unselect();
+    }
+
+    public void SetBuildingPrefab(GameObject prefab)
+    {
+        buildingPrefab = prefab;
     }
 
     private void SetSelection(int x, int y)
@@ -148,7 +179,6 @@ public class ControlManager : MonoBehaviour
     {
         if (selection != null)
         {
-            Debug.Log($"Unselected spot: {selectionX}, {selectionY}");
             selectionX = -1;
             selectionY = -1;
             Vector3 pos = selection.transform.position;

@@ -106,6 +106,37 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &2259625464225769162
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1616559708918606113}
+  m_Layer: 0
+  m_Name: ItemLocation
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1616559708918606113
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2259625464225769162}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.05, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7113342708472561921}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3325684517789746454
 GameObject:
   m_ObjectHideFlags: 0
@@ -242,6 +273,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1616559708918606113}
   - {fileID: 210427351217916058}
   - {fileID: 7821466400632902739}
   - {fileID: 76046772437654629}
@@ -268,12 +300,16 @@ MonoBehaviour:
   hasItemOutput: 1
   isProduction: 0
   isStorage: 0
-  basePlate: {fileID: 0}
+  basePlate: {fileID: 3325684517789746454}
+  itemLocation: {fileID: 2259625464225769162}
   edges:
   - {fileID: 7000045316174373845}
   - {fileID: 5454883410837390367}
   - {fileID: 4615940844680538901}
   - {fileID: 5119462939849601034}
+  items: []
+  canPassItem: 0
+  prepared: 0
 --- !u!1 &4615940844680538901
 GameObject:
   m_ObjectHideFlags: 0

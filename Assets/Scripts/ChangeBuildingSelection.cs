@@ -2,16 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CreateBuildingAtSelection : MonoBehaviour
+public class ChangeBuildingSelection : MonoBehaviour
 {
     public GameObject buildingPrefab;
 
-    public void CreateBuilding()
+    public void SetBuilding()
     {
         if (buildingPrefab != null)
         {
-            GridManager gridManager = GridManager.GetInstance();
-            gridManager.CreateBuilding(buildingPrefab, ControlManager.selectionX, ControlManager.selectionY);
+            ControlManager.GetInstance().SetBuildingPrefab(buildingPrefab);
         }
         else
         {

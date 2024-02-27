@@ -5,6 +5,10 @@ using UnityEngine;
 public class TickManager : MonoBehaviour
 {
     public static TickManager instance;
+    public static TickManager GetInstance()
+    {
+        return instance;
+    }
 
     public delegate void TickDelegate();
     public delegate void PrepTickDelegate();
@@ -14,11 +18,13 @@ public class TickManager : MonoBehaviour
 
     
     public float ticksPerSecond = 1f;
+    public bool paused = false;
 
 
     private float tickTimer = 0f;
     private int tickCount = 0;
-    private bool prepNextTick = true;
+
+
 
     private void Awake()
     {
@@ -33,25 +39,20 @@ public class TickManager : MonoBehaviour
         }
     }
 
+
     // Update is called once per frame
     void Update()
     {
+        if (paused) return;
+
         tickTimer += Time.deltaTime;
 
-        if (tickTimer >= 1f / (ticksPerSecond * 2))
+        if (tickTimer >= 1f / ticksPerSecond)
         {
             tickTimer -= 1f / ticksPerSecond;
             tickCount++;
-            if (prepNextTick)
-            {
-                prepNextTick = false;
-                onPrepTick?.Invoke();
-            }
-            else
-            {
-                prepNextTick = true;
-                onTick?.Invoke();
-            }
+            
+            onTick?.Invoke();
         }
     }
 }
