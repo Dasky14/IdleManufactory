@@ -75,7 +75,7 @@ public class GridManager : MonoBehaviour
             GridSpot spot = go.GetComponent<GridSpot>();
             if (spot.isOccupied)
             {
-                return spot.GetBuilding().GetComponent<Building>();
+                return spot.building;
             }
         }
         return null;
@@ -100,6 +100,7 @@ public class GridManager : MonoBehaviour
         if (buildingComponent != null)
         {
             buildingComponent.SetPosition(x, y);
+            spot.building = buildingComponent;
             spot.isOccupied = true;
         }
         else

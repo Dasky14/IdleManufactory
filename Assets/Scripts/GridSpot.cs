@@ -10,20 +10,20 @@ public class GridSpot : MonoBehaviour
 
     public GameObject buildingContainer;
     public GameObject groundModel;
+    public Building building;
 
-    public GameObject GetBuilding()
+    public GameObject GetBuildingGameObject()
     {
-        return buildingContainer.transform.GetChild(0).gameObject;
+        return building.gameObject;
     }
 
     public void DemolishBuilding()
     {
         if (isOccupied)
         {
-            Building building = GetBuilding().GetComponent<Building>();
-            building.OnDemolish();
-            Destroy(GetBuilding());
             isOccupied = false;
+            building.OnDemolish();
+            Destroy(GetBuildingGameObject());
         }
     }
 }

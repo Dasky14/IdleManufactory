@@ -143,7 +143,7 @@ public class ControlManager : MonoBehaviour
                 GridSpot spot = hit.collider.GetComponentInParent<GridSpot>();
                 if (spot != null && spot.isOccupied)
                 {
-                    spot.GetBuilding().GetComponent<Building>().Rotate(1);
+                    spot.GetBuildingGameObject().GetComponent<Building>().Rotate(1);
                 }
             }
         }

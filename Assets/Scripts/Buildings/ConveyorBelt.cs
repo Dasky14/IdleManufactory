@@ -9,6 +9,7 @@ public class ConveyorBelt : Building
     private GameObject basePlate;
     [SerializeField]
     private GameObject itemLocation;
+    public Vector3 GetItemLocation() { return itemLocation.transform.position; }
     [SerializeField]
     private GameObject[] edges;
 
@@ -30,7 +31,7 @@ public class ConveyorBelt : Building
 
         FindStartingRotation();
         UpdateConnections();
-        UpdateNearby();
+        UpdateNearbyBelts();
 
         TickManager.GetInstance().onTick += OnTick;
     }
@@ -38,6 +39,7 @@ public class ConveyorBelt : Building
     public override void OnDemolish()
     {
         TickManager.GetInstance().onTick -= OnTick;
+        UpdateNearbyBelts();
     }
 
     private void OnTick()
@@ -58,9 +60,9 @@ public class ConveyorBelt : Building
             TickManager tickManager = TickManager.GetInstance();
 
             if (tickManager.animateItemMovement)
-                StartCoroutine(MoveItem(items[0], nextConveyorBelt.itemLocation.transform.position, (1f / tickManager.ticksPerSecond) / 2));
+                StartCoroutine(MoveItem(items[0], nextConveyorBelt.GetItemLocation(), (1f / tickManager.ticksPerSecond) / 2));
             else
-                items[0].transform.position = nextConveyorBelt.itemLocation.transform.position;
+                items[0].transform.position = nextConveyorBelt.GetItemLocation();
 
             nextConveyorBelt.items.Add(items[0]);
             items.RemoveAt(0);
@@ -77,7 +79,7 @@ public class ConveyorBelt : Building
             RotateWithoutUpdate(amount);
 
             UpdateConnections();
-            UpdateNearby();
+            UpdateNearbyBelts();
         }
     }
 
@@ -103,7 +105,7 @@ public class ConveyorBelt : Building
             SetRotationWithoutUpdate(direction);
 
             UpdateConnections();
-            UpdateNearby();
+            UpdateNearbyBelts();
         }
     }
 
@@ -117,64 +119,44 @@ public class ConveyorBelt : Building
             this.direction = direction;
         }
     }
+    public override bool[] GetOutputDirections()
+    {
+        bool[] outputs = new bool[4];
+        outputs[(int)direction] = true;
+        return outputs;
+    }
 
     public void UpdateConnections()
     {
-        GridManager gridManager = GridManager.GetInstance();
-
-        int edge = 0;
-        (int x, int y)[] directions = new (int x, int y)[4] { (0, 1), (1, 0), (0, -1), (-1, 0) };
-
-        foreach ((int x, int y) dir in directions)
+        for (int i = 0; i < 4; i++)
         {
-            Building building = gridManager.GetGridBuilding(gridPosX + dir.x, gridPosY + dir.y);
+            Building building = GetBuildingInDirection((BuildingDirection)i);
             if (building != null && building is ConveyorBelt)
             {
-                if ((int)building.direction != (edge + 2) % 4  && (int)direction == edge)
-                    edges[edge].SetActive(true);
-                else if ((int)building.direction == (edge + 2) % 4  && (int)direction != edge)
-                    edges[edge].SetActive(true);
+                if ((int)building.direction != (i + 2) % 4  && (int)direction == i)
+                    edges[i].SetActive(true);
+                else if ((int)building.direction == (i + 2) % 4  && (int)direction != i)
+                    edges[i].SetActive(true);
                 else
-                    edges[edge].SetActive(false);
+                    edges[i].SetActive(false);
             }
+            else if (building != null && GettingOutputFromDirection((BuildingDirection)i))
+                edges[i].SetActive(true);
             else
-                edges[edge].SetActive(false);
-
-            edge++;
+                edges[i].SetActive(false);
         }
 
-        (int x, int y) front = directions[(int)direction];
-        Building frontBuilding = gridManager.GetGridBuilding(gridPosX + front.x, gridPosY + front.y);
+        Building frontBuilding = GetBuildingInDirection(direction);
         if (frontBuilding != null && frontBuilding is ConveyorBelt)
-        {
             nextConveyorBelt = frontBuilding as ConveyorBelt;
-        }
-    }
-
-    private void UpdateNearby()
-    {
-        GridManager gridManager = GridManager.GetInstance();
-
-        (int x, int y)[] directions = new (int x, int y)[4] { (0, 1), (1, 0), (0, -1), (-1, 0) };
-
-        foreach ((int x, int y) dir in directions)
-        {
-            Building building = gridManager.GetGridBuilding(gridPosX + dir.x, gridPosY + dir.y);
-            if (building != null && building is ConveyorBelt)
-                (building as ConveyorBelt).UpdateConnections();
-        }
     }
 
     private void FindStartingRotation()
     {
-        GridManager gridManager = GridManager.GetInstance();
-
-        (int x, int y)[] directions = new (int x, int y)[4] { (0, 1), (1, 0), (0, -1), (-1, 0) };
-
         int newDirection = 0;
-        foreach ((int x, int y) dir in directions)
+        for (int i = 0; i < 4; i++)
         {
-            Building building = gridManager.GetGridBuilding(gridPosX + dir.x, gridPosY + dir.y);
+            Building building = GetBuildingInDirection((BuildingDirection)i);
             if (building != null && building is ConveyorBelt)
             {
                 RotateWithoutUpdate((newDirection + 2) % 4);
@@ -198,18 +180,5 @@ public class ConveyorBelt : Building
                 count++;
         }
         return count;
-    }
-
-    private IEnumerator MoveItem(GameObject item, Vector3 target, float overTime)
-    {
-        Vector3 source = item.transform.position;
-
-        float startTime = Time.time;
-        while (Time.time < startTime + overTime)
-        {
-            item.transform.position = Vector3.Lerp(source, target, (Time.time - startTime) / overTime);
-            yield return null;
-        }
-        item.transform.position = target;
     }
 }
